@@ -21,7 +21,7 @@ public class MazeController
 	
 	private ArrayList<Position> generationPosList = new ArrayList<Position>();
 	
-	private int RIGHT = 0, DOWN = 1, LEFT = 2, UP = 3;
+	private final int RIGHT = 0, DOWN = 1, LEFT = 2, UP = 3, BLOCKED = 4;
 	private Position[] orthoPositions = {new Position(1,0), new Position(0,1), new Position(-1,0), new Position(0,-1)};
 	
 	public MazeController(int Width, int Height)
@@ -36,22 +36,35 @@ public class MazeController
 		
 		random = new Random();
 		
-		for (int X=0; X<Width; X++)
+		for (int X=0; X<width; X++)
 		{
-			for (int Y=0; Y<Width; Y++)
+			for (int Y=0; Y<height; Y++)
 			{
-				mazeSpaces.add((X == start.getX() && Y == start.getY()) ? (MazeSpaceState.NO_OPENINGS) : (MazeSpaceState.BLOCKED));
+				mazeSpaces.add(new MazeSpaceState(false, false, false, false));
 			}
 		}
-		
-		Position posA = new Position(3, 7);
-		Position posB = new Position(5, -2);
 	}
 	
-	public void DrawMazeSpaces(Graphics2D g2)
+	public void reset()
+	{
+		generationComplete = false;
+		generationPosList.add(start);
+		for (int X=0; X<width; X++)
+		{
+			for (int Y=0; Y<height; Y++)
+			{
+				setMazeSpace(X, Y, new MazeSpaceState(false, false, false, false));
+			}
+		}
+	}
+	
+	public void drawMazeSpaces(Graphics2D g2)
 	{
 		if (!visible)
 			return;
+		
+		g2.setPaint(Color.BLUE);
+		g2.fillRect(128, 128, width*16, height*16);
 		
 		for (int x=0; x<width; x++)
 			for (int y=0; y<height; y++)
@@ -59,107 +72,81 @@ public class MazeController
 				int X = x*16 + 128;
 				int Y = y*16 + 128;
 				
-				if (mazeSpaces.get(x*height + y) == MazeSpaceState.BLOCKED)
+				g2.setPaint(Color.WHITE);
+				if (getMazeSpace(x, y).isRight())
 				{
-					g2.fillRect(X, Y, 14, 14);
+					g2.fillRect(X + 1, Y + 1, 30, 14);
 				}
-				
-				if (mazeSpaces.get(x*height + y) != MazeSpaceState.RIGHT && mazeSpaces.get(x*height + y) != MazeSpaceState.RIGHT_DOWN)
+				if (getMazeSpace(x, y).isDown())
 				{
-					g2.fillRect(X + 14, Y, 2, 16);
-				}
-				if (mazeSpaces.get(x*height + y) != MazeSpaceState.DOWN && mazeSpaces.get(x*height + y) != MazeSpaceState.RIGHT_DOWN)
-				{
-					g2.fillRect(X, Y + 14, 16, 2);
-				}
-				
-				if (x == 0)
-				{
-					g2.fillRect(X - 2, Y, 2, 16);
-				}
-				if (y == 0)
-				{
-					g2.fillRect(X, Y - 2, 16, 2);
+					g2.fillRect(X + 1, Y + 1, 14, 30);
 				}
 				
 				if (x == start.getX() && y == start.getY())
 				{
 					g2.setPaint(Color.GREEN);
 					g2.fillRect(X + 3, Y + 3, 8, 8);
-					g2.setPaint(Color.BLUE);
 				}
 				if (x == end.getX() && y == end.getY())
 				{
 					g2.setPaint(Color.RED);
 					g2.fillRect(X + 3, Y + 3, 8, 8);
-					g2.setPaint(Color.BLUE);
 				}
 			}
 		
-		g2.setPaint(Color.ORANGE);
+		/*g2.setPaint(Color.ORANGE);
 		for (Position genPos : generationPosList)
 		{
 			int X = genPos.getX()*16 + 128;
 			int Y = genPos.getY()*16 + 128;
 			g2.fillRect(X + 3, Y + 3, 8, 8);
-		}
+		}*/
 	}
 	
-	public int[] StepGeneration()
+	public void stepGeneration()
 	{
 		if (generationComplete)
-			return new int[] {0, 0, 0, 0};
+			return;
 		
 		Position usedPosition = generationPosList.get(random.nextInt(generationPosList.size()));		
-		Position[] availableDirections = GetMatchingOrthoPositions(usedPosition, new MazeSpaceState[] {MazeSpaceState.BLOCKED});		
+		Position[] availableDirections = getMatchingOrthoPositions(usedPosition, BLOCKED);		
 		Position orthoPos = availableDirections[random.nextInt(availableDirections.length)];
 		Position stepPosition = usedPosition.addPosition(orthoPos);
 		
 		if (orthoPos.equals(orthoPositions[RIGHT]))
 		{
-			mazeSpaces.set(stepPosition.getX()*height + stepPosition.getY(), MazeSpaceState.NO_OPENINGS);
-			
-			if (mazeSpaces.get(usedPosition.getX()*height + usedPosition.getY()) != MazeSpaceState.DOWN)
-				mazeSpaces.set(usedPosition.getX()*height + usedPosition.getY(), MazeSpaceState.RIGHT);
-			else
-				mazeSpaces.set(usedPosition.getX()*height + usedPosition.getY(), MazeSpaceState.RIGHT_DOWN);
+			setMazeSpace(usedPosition, getMazeSpace(usedPosition).setRight(true));
+			setMazeSpace(stepPosition, getMazeSpace(stepPosition).setLeft(true));
 		}
 		else if (orthoPos.equals(orthoPositions[DOWN]))
 		{
-			mazeSpaces.set(stepPosition.getX()*height + stepPosition.getY(), MazeSpaceState.NO_OPENINGS);
-			
-			if (mazeSpaces.get(usedPosition.getX()*height + usedPosition.getY()) != MazeSpaceState.RIGHT)
-				mazeSpaces.set(usedPosition.getX()*height + usedPosition.getY(), MazeSpaceState.DOWN);
-			else
-				mazeSpaces.set(usedPosition.getX()*height + usedPosition.getY(), MazeSpaceState.RIGHT_DOWN);
+			setMazeSpace(usedPosition, getMazeSpace(usedPosition).setDown(true));
+			setMazeSpace(stepPosition, getMazeSpace(stepPosition).setUp(true));
 		}
 		else if (orthoPos.equals(orthoPositions[LEFT]))
 		{
-			if (mazeSpaces.get(stepPosition.getX()*height + stepPosition.getY()) != MazeSpaceState.DOWN)
-				mazeSpaces.set(stepPosition.getX()*height + stepPosition.getY(), MazeSpaceState.RIGHT);
-			else
-				mazeSpaces.set(stepPosition.getX()*height + stepPosition.getY(), MazeSpaceState.RIGHT_DOWN);
+			setMazeSpace(usedPosition, getMazeSpace(usedPosition).setLeft(true));
+			setMazeSpace(stepPosition, getMazeSpace(stepPosition).setRight(true));
 		}
 		else if (orthoPos.equals(orthoPositions[UP]))
 		{
-			if (mazeSpaces.get(stepPosition.getX()*height + stepPosition.getY()) != MazeSpaceState.RIGHT)
-				mazeSpaces.set(stepPosition.getX()*height + stepPosition.getY(), MazeSpaceState.DOWN);
-			else
-				mazeSpaces.set(stepPosition.getX()*height + stepPosition.getY(), MazeSpaceState.RIGHT_DOWN);
+			setMazeSpace(usedPosition, getMazeSpace(usedPosition).setUp(true));
+			setMazeSpace(stepPosition, getMazeSpace(stepPosition).setDown(true));
 		}
 		
 		
-		UpdateGenPosList(stepPosition);
-		
-		return (new int[] {
-				stepPosition.getX()*16 + 128 - 32,
-				stepPosition.getY()*16 + 128 - 32,
-				64,
-				64
-		});
+		updateGenPosList(stepPosition);
 	}
 	
-	private Position[] GetMatchingOrthoPositions(Position pos, MazeSpaceState[] tgtStates)
+	public void fullGeneration()
+	{
+		while (!generationComplete)
+		{
+			stepGeneration();
+		}
+	}
+	
+	private Position[] getMatchingOrthoPositions(Position pos, int state)
 	{
 		ArrayList<Position> validOrthoPostions = new ArrayList<Position>();
 		
@@ -169,9 +156,41 @@ public class MazeController
 			
 			if (checkPos.getX() >= 0 && checkPos.getX() < width && checkPos.getY() >= 0 && checkPos.getY() < height)
 			{
-				if (Arrays.stream(tgtStates).anyMatch(x -> x == mazeSpaces.get(checkPos.getX()*height + checkPos.getY())))
+				
+				MazeSpaceState checkState = getMazeSpace(checkPos);
+				
+				switch (state)
 				{
-					validOrthoPostions.add(orthoPos);
+				case RIGHT:
+				{
+					if (checkState.isRight())
+						validOrthoPostions.add(orthoPos);
+				}
+					break;
+				case DOWN:
+				{
+					if (checkState.isDown())
+						validOrthoPostions.add(orthoPos);
+				}
+					break;
+				case LEFT:
+				{
+					if (checkState.isLeft())
+						validOrthoPostions.add(orthoPos);
+				}
+					break;
+				case UP:
+				{
+					if (checkState.isUp())
+						validOrthoPostions.add(orthoPos);
+				}
+					break;
+				default:
+				{
+					if (checkState.isBlocked())
+						validOrthoPostions.add(orthoPos);
+				}
+					break;
 				}
 			}
 		}
@@ -179,12 +198,16 @@ public class MazeController
 		return validOrthoPostions.toArray(new Position[validOrthoPostions.size()]);
 	}
 	
-	private void UpdateGenPosList(Position center)
+	private void updateGenPosList(Position center)
 	{
-		if (mazeSpaces.get(center.getX()*height + center.getY()) != MazeSpaceState.BLOCKED && GetMatchingOrthoPositions(center, new MazeSpaceState[] {MazeSpaceState.BLOCKED}).length > 0)
+		System.out.println("Updating Position " + center);
+		
+		if (!getMazeSpace(center).isBlocked() && getMatchingOrthoPositions(center, BLOCKED).length > 0)
 		{
 			if (!generationPosList.contains(center))
+			{
 				generationPosList.add(center);
+			}
 		}
 		
 		for (Position orthoPos : orthoPositions)
@@ -194,10 +217,12 @@ public class MazeController
 			
 			if (checkPos.getX() >= 0 && checkPos.getX() < width && checkPos.getY() >= 0 && checkPos.getY() < height)
 			{
-				if (mazeSpaces.get(checkPos.getX()*height + checkPos.getY()) != MazeSpaceState.BLOCKED && GetMatchingOrthoPositions(checkPos, new MazeSpaceState[] {MazeSpaceState.BLOCKED}).length > 0)
+				if (!getMazeSpace(checkPos).isBlocked() && getMatchingOrthoPositions(checkPos, BLOCKED).length > 0)
 				{
 					if (!generationPosList.contains(checkPos))
+					{
 						generationPosList.add(checkPos);
+					}
 				}
 				else
 				{
@@ -216,6 +241,26 @@ public class MazeController
 	public boolean genIsComplete()
 	{
 		return generationComplete;
+	}
+	
+	private MazeSpaceState getMazeSpace(int x, int y)
+	{
+		return mazeSpaces.get(x*height + y);
+	}
+	
+	private MazeSpaceState getMazeSpace(Position pos)
+	{
+		return mazeSpaces.get(pos.getX()*height + pos.getY());
+	}
+	
+	private MazeSpaceState setMazeSpace(int x, int y, MazeSpaceState mss)
+	{
+		return mazeSpaces.set(x*height + y, mss);
+	}
+	
+	private MazeSpaceState setMazeSpace(Position pos, MazeSpaceState mss)
+	{
+		return mazeSpaces.set(pos.getX()*height + pos.getY(), mss);
 	}
 	
 }

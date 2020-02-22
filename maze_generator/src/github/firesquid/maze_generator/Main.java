@@ -9,31 +9,57 @@ public class Main {
 
 	public static void main(String[] args) {
 		
-		MazeController mazeController = new MazeController(60, 50);
+		MazeController mazeController = new MazeController(50, 50);
 		MazeDisplay mdWindow = new MazeDisplay(mazeController);
 		mdWindow.setVisible(true);
 		
+		
+		// Step Generation Timer
+		/*
 		int delay = 1;
 		ActionListener StepGen = new ActionListener() {
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				
-				int[] reDrawCoords = mazeController.StepGeneration();
+				mazeController.stepGeneration();
 				
 				if (mazeController.genIsComplete())
 				{
 					((Timer)e.getSource()).stop();
-					mdWindow.redraw(0);
+					mdWindow.repaintBuffer(0);
 				}
 				else
 				{
-					mdWindow.redraw(33);
+					mdWindow.repaintBuffer(33);
 				}
 			}
 		};
 		
-		new Timer(delay, StepGen).start();;
+		new Timer(delay, StepGen).start();
+		*/
+		
+		// Fully Generate Maze
+		/*
+		mazeController.fullGeneration();
+		mdWindow.repaintBuffer(0);
+		*/
+		
+		// Full Generation Timer
+		int delay = 200;
+		ActionListener FullGen = new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				
+				mazeController.fullGeneration();
+				mdWindow.repaintBuffer(0);				
+				mazeController.reset(); 
+			}
+		};
+		
+		new Timer(delay, FullGen).start();
+		
 
 	}
 

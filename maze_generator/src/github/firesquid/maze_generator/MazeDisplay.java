@@ -13,8 +13,8 @@ import java.awt.image.BufferedImage;
 public class MazeDisplay extends Frame 
 {
 	
-	private static final int WINDOW_WIDTH = 1280;
-	private static final int WINDOW_HEIGHT = 1000;
+	private static final int WINDOW_WIDTH = 1080;
+	private static final int WINDOW_HEIGHT = 1080;
 	
 	private long lastTimeDrawn;
 	
@@ -26,10 +26,10 @@ public class MazeDisplay extends Frame
 	{
 		super("Maze Generator");
 		controller = cont;
-		Initialize();
+		initialize();
 	}
 	
-	private void Initialize()
+	private void initialize()
 	{
 		setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
 		
@@ -43,7 +43,7 @@ public class MazeDisplay extends Frame
 		lastTimeDrawn = System.currentTimeMillis();
 	}
 	
-	public void redraw(long msDelay)
+	public void repaintBuffer(long msDelay)
 	{
 		if (lastTimeDrawn + msDelay > System.currentTimeMillis())
 			return;
@@ -56,7 +56,7 @@ public class MazeDisplay extends Frame
 		Graphics2D g2 = (Graphics2D) g;
 		
 		g2.setPaint(Color.BLUE);
-		controller.DrawMazeSpaces(g2);
+		controller.drawMazeSpaces(g2);
 		
 		if (this.getGraphics() != null)
 		{
