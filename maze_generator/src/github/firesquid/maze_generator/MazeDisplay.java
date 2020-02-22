@@ -9,10 +9,13 @@ import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 
 
-@SuppressWarnings("serial")
 public class MazeDisplay extends Frame 
 {
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 7527229839395439108L;
 	private static final int WINDOW_WIDTH = 1080;
 	private static final int WINDOW_HEIGHT = 1080;
 	

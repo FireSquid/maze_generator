@@ -5,6 +5,7 @@ import java.awt.event.ActionListener;
 
 import javax.swing.Timer;
 
+@SuppressWarnings("unused")
 public class Main {
 
 	public static void main(String[] args) {
@@ -39,13 +40,13 @@ public class Main {
 		new Timer(delay, StepGen).start();
 		*/
 		
-		// Fully Generate Maze
-		/*
+		// Fully Generate Maze		
 		mazeController.fullGeneration();
-		mdWindow.repaintBuffer(0);
-		*/
+		mdWindow.repaintBuffer(0);	
+		
 		
 		// Full Generation Timer
+		/*
 		int delay = 200;
 		ActionListener FullGen = new ActionListener() {
 			
@@ -59,6 +60,7 @@ public class Main {
 		};
 		
 		new Timer(delay, FullGen).start();
+		*/
 		
 
 	}
