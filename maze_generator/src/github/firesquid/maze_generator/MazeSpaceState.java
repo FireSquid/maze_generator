@@ -1,12 +1,23 @@
+/**
+ * Project:		firesquid.maze_generator
+ * Filename:	MazeSpaceState.java
+ * Developer:	Peter Reynolds
+ * Date:		February 22, 2020
+ * 
+ * 
+ * structure to hold the state of a spaced
+ * each boolean determines if there is an opening to an adjacent space
+ */
+
 package github.firesquid.maze_generator;
 
 public class MazeSpaceState {
 	
+	// stores which openings the space has
 	public boolean Right;
 	public boolean Down;
 	public boolean Left;
 	public boolean Up;
-	public boolean Blocked;
 	
 	public MazeSpaceState(boolean r, boolean d, boolean l, boolean u)
 	{
@@ -60,6 +71,7 @@ public class MazeSpaceState {
 		return this;
 	}
 	
+	// check if the space is completely closed off
 	public boolean isBlocked()
 	{
 		return (!Right && !Down && !Left && !Up);
